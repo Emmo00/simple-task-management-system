@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const taskStatus = require('../utils/meta').taskStatus;
 const Schema = mongoose.Schema;
 
 const TaskSchema = new Schema(
@@ -13,11 +14,15 @@ const TaskSchema = new Schema(
     },
     status: {
       type: string,
-      enum: ['To DO', 'In Progress', 'Done'],
+      enum: taskStatus,
       default: 'To Do',
     },
     dueDate: {
       type: Date,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      required: true,
     },
   },
   { timestamps: true }
