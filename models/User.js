@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const TaskSchema = require('./Task');
 const Schema = mongoose.Schema;
@@ -18,9 +19,13 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    tasks: [TaskSchema]
+    tasks: [TaskSchema],
   },
   { timestamps: true }
 );
+
+UserSchema.methods.comparePassword = function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
 module.exports = mongoose.model('User', UserSchema);
