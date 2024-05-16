@@ -1,7 +1,7 @@
 const User = require('../models/User');
 
 class UserController {
-  static async register() {
+  static async register(req, res) {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password)
@@ -29,23 +29,20 @@ class UserController {
     }
   }
 
-  static async login() {
+  static async login(req, res) {
     const { email, password } = req.body;
 
     try {
-      // Find the user by email
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      // Check if password is correct
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      // Create and sign a JWT token
       const payload = { id: user._id, username: user.username };
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: '1h',
