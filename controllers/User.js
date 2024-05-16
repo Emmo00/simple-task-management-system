@@ -4,6 +4,9 @@ class UserController {
   static async register() {
     const { username, email, password } = req.body;
 
+    if (!username || !email || !password)
+      return res.status(400).json({ message: 'All fields are required' });
+
     try {
       let existingUser = await User.findOne({ email });
       if (existingUser) {
@@ -14,7 +17,9 @@ class UserController {
         return res.status(400).json({ message: 'username already taken' });
       }
 
-      const user = new User({ username, email, password });
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+      const user = new User({ username, email, password: passwordHash });
       await user.save();
 
       res.status(201).json({ message: 'User registered successfully' });
@@ -23,7 +28,35 @@ class UserController {
       res.status(500).json({ message: 'Server error' });
     }
   }
-  static login() {}
+
+  static async login() {
+    const { email, password } = req.body;
+
+    try {
+      // Find the user by email
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      // Check if password is correct
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      // Create and sign a JWT token
+      const payload = { id: user._id, username: user.username };
+      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+
+      res.json({ token });
+    } catch (error) {
+      console.error('Error logging in:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
 }
 
 module.exports = UserController;
