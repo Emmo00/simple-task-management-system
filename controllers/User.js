@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 class UserController {
@@ -5,7 +7,7 @@ class UserController {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password)
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: 'email, username and password fields are required' });
 
     try {
       let existingUser = await User.findOne({ email });
@@ -32,6 +34,9 @@ class UserController {
   static async login(req, res) {
     const { email, password } = req.body;
 
+    if (!email || !password)
+      return res.status(400).json({ message: 'email and password fields are required' });
+
     try {
       const user = await User.findOne({ email });
       if (!user) {
@@ -44,8 +49,8 @@ class UserController {
       }
 
       const payload = { id: user._id, username: user.username };
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {
-        expiresIn: '1h',
+      const token = jwt.sign(payload, process.env.SECRET, {
+        expiresIn: '4h',
       });
 
       res.json({ token });

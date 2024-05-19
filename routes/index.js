@@ -3,8 +3,7 @@ const UserController = require('../controllers/User');
 const TaskController = require('../controllers/Task');
 const authMiddleware = require('../middleware/auth').authMiddleware;
 
-const Router = express.Router();
-const router = Router();
+const router = express.Router();
 
 // User endpoints
 router.post('/auth/register', UserController.register);

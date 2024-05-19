@@ -1,1 +1,1 @@
-module.exports.taskStatus = ['To DO', 'In Progress', 'Done'];
+module.exports.taskStatus = ['To Do', 'In Progress', 'Done'];

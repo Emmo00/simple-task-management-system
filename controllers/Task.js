@@ -14,10 +14,18 @@ class TaskController {
       return res.status(400).json({
         message: `Invalid status type. Choose from: ${taskStatus.join(', ')}`,
       });
-    if (!dueDate) res.status(400).json({ message: 'Due date must be field' });
+    let due;
+    if (!dueDate) due = new Date(Date.now());
+    else due = new Date(dueDate);
 
-    const createdBy = req.user._id;
-    const task = new Task({ title, description, status, dueDate, createdBy });
+    const createdBy = req.user.id;
+    const task = new Task({
+      title,
+      description,
+      status,
+      createdBy,
+      dueDate: due,
+    });
     await task.save();
 
     return res
@@ -36,7 +44,7 @@ class TaskController {
   static async getTasks(req, res) {
     const page = req.query.page ?? 1;
     const perPage = req.query.perPage ?? 12;
-    const tasks = await Task.find({ createdBy: req.user._id })
+    const tasks = await Task.find({ createdBy: req.user.id })
       .skip(perPage * (page - 1))
       .limit(perPage);
     return res.json({ message: 'User Tasks', data: tasks.map(taskToJSON) });
@@ -44,15 +52,18 @@ class TaskController {
 
   static async updateTask(req, res) {
     const taskId = req.params.id;
-    const status = req.body.status;
+    const { status, title, description, dueDate } = req.body;
 
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: 'Task does not exist' });
-    if (!taskStatus.includes(status))
+    if (status && !taskStatus.includes(status))
       return res.status(400).json({
         message: `Invalid status type. Choose from: ${taskStatus.join(', ')}`,
       });
-    task.status = status;
+    task.status = status ?? task.status;
+    task.title = title ?? task.title;
+    task.description = description ?? task.description;
+    task.dueDate = dueDate ?? task.dueDate;
     await task.save();
     return res.json({ message: 'Task updated', data: taskToJSON(task) });
   }
